@@ -1,0 +1,10 @@
+django
+djangorestframework
+markdown
+django-filter
+psycopg2
+celery
+redis
+praw
+django-environ
+django-filter

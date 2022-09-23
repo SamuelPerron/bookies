@@ -1,0 +1,62 @@
+version: "3.9"
+   
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes: 
+      - bookies-db:/var/lib/postgresql/data
+
+  api:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
+      - redis
+
+  redis:
+    image: redis:alpine
+    
+  celery:
+    build: .
+    command: celery -A api worker -l info
+    volumes:
+      - .:/code
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-1-c104%8^48_npo^j6eq#_12$tc1xog(4ep(w_yk(5jba$z87v
+      - DJANGO_ALLOWED_HOSTS=0.0.0.0
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A api beat -l info
+    volumes:
+      - .:/code
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-1-c104%8^48_npo^j6eq#_12$tc1xog(4ep(w_yk(5jba$z87v
+      - DJANGO_ALLOWED_HOSTS=0.0.0.0
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - redis
+
+volumes:
+  bookies-db: {}
