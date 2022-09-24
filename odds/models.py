@@ -44,6 +44,37 @@ class Match(models.Model):
     away_team = models.ForeignKey('odds.Team', on_delete=models.CASCADE, related_name='away_match_set')
     home_team = models.ForeignKey('odds.Team', on_delete=models.CASCADE, related_name='home_match_set')
 
+    @property
+    def arbitrage_pairs(self):
+        multi_array = []
+        values = self.odds_set.all().values(
+            'id', 'away_odds', 'home_odds'
+        )
+        profitable_odds = []
+
+        for i, odds in enumerate(values):
+            for j in range(2):
+                for other_odds in values[i:]:
+                    if j == 0:
+                        calculation = 1 / odds['away_odds'] + 1 / other_odds['home_odds']
+                    else:
+                        calculation = 1 / odds['home_odds'] + 1 / other_odds['away_odds']
+
+                    multi_array.append(
+                        (odds['id'], other_odds['id'], j, calculation)
+                    )
+
+        for odds in multi_array:
+            if odds[3] < 1:
+                profitable_odds.append(odds)
+
+        return profitable_odds
+
+    @property
+    def arbitrage_possibility(self):
+        return bool(len(self.arbitrage_pairs))
+
+
     def __str__(self):
         date = timezone.localtime(
             self.date, 
@@ -62,6 +93,14 @@ class Odds(models.Model):
 
     away_odds = models.FloatField(blank=False)
     home_odds = models.FloatField(blank=False)
+
+    @property
+    def implied_probability(self):
+        if not self.away_odds or not self.home_odds:
+            return None
+
+        probability = 1 / self.away_odds + 1 / self.home_odds
+        return f'{round(probability * 100, 2)} %'
 
     def __str__(self):
         return f'{self.match} | {self.away_odds} - {self.home_odds}'
