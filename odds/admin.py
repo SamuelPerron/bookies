@@ -45,7 +45,7 @@ class OddsAdmin(admin.ModelAdmin):
             'fields': ('bookie', 'match')
         }),
         ('Odds', {
-            'fields': ('away_odds', 'home_odds')
+            'fields': ('away_odds', 'home_odds', 'us_away_odds', 'us_home_odds')
         }),
         ('Calculations', {
             'fields': ('implied_probability',)
@@ -53,6 +53,7 @@ class OddsAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('implied_probability',)
+    writeonly_fields = ('us_away_odds', 'us_home_odds')
 
     list_display = (
         'bookie',
