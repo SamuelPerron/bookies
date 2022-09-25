@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
 
-    'odds'
+    'odds',
+    'games'
 ]
 
 MIDDLEWARE = [
