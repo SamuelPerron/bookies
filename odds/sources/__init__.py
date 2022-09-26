@@ -15,5 +15,13 @@ class Source:
 
     def _fetch_document(self, url):
         response = self._fetch_url(url)
-        return BeautifulSoup(response.text, 'html.parser') 
+        return BeautifulSoup(response.text, 'html.parser')
+
+    def _params_to_url(self, params):
+        url = '?'
+
+        for param in params:
+            url += f'&{param}={params[param]}'
+
+        return url
 
