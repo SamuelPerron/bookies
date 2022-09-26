@@ -1,11 +1,17 @@
 from django.contrib import admin
 
+from django.contrib.admin.filters import RelatedOnlyFieldListFilter
+
 from games.models import (
     League,
     City,
     Team,
     Match,
 )
+
+
+class RelatedOnlyDropdownFilter(RelatedOnlyFieldListFilter):
+    template = 'admin/dropdown_filter.html'
 
 
 admin.site.register(League)
@@ -32,4 +38,9 @@ class MatchAdmin(admin.ModelAdmin):
         'away_team',
         'home_team',
         'arbitrage_possibility'
+    )
+    list_filter = (
+        ('away_team', RelatedOnlyDropdownFilter),
+        ('home_team', RelatedOnlyDropdownFilter),
+        ('league', RelatedOnlyDropdownFilter)
     )
