@@ -8,3 +8,5 @@ redis
 praw
 django-environ
 django-filter
+beautifulsoup4
+requests

@@ -3,7 +3,18 @@ from django.db import models
 
 class Bookie(models.Model):
     name = models.CharField(blank=False, max_length=255)
-    base_url = models.CharField(blank=False, max_length=255)
+
+    def import_data(self):
+        source = None
+
+        if self.name.lower().strip() == 'bet99':
+            from odds.sources.bet99 import BET99
+            source = BET99
+
+        if source is None:
+            raise AttributeError
+
+        source().import_data(self)
 
     def __str__(self):
         return self.name

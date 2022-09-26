@@ -3,7 +3,14 @@ from django.contrib import admin
 from odds.models import Bookie, Odds
 
 
-admin.site.register(Bookie)
+@admin.register(Bookie)
+class BookieAdmin(admin.ModelAdmin):
+    actions = ('import_data',)
+
+    @admin.action(description='Import data')
+    def import_data(self, request, queryset):
+        for bookie in queryset:
+            bookie.import_data()
 
 
 @admin.register(Odds)
