@@ -17,7 +17,7 @@ class BookieAdmin(admin.ModelAdmin):
 class OddsAdmin(admin.ModelAdmin):
     fieldsets = (
         ('General', {
-            'fields': ('bookie', 'match')
+            'fields': ('bookie', 'match', 'refreshed_at', 'external_id', 'url')
         }),
         ('Odds', {
             'fields': ('away_odds', 'home_odds', 'us_away_odds', 'us_home_odds')
@@ -27,7 +27,7 @@ class OddsAdmin(admin.ModelAdmin):
         }),
     )
 
-    readonly_fields = ('implied_probability',)
+    readonly_fields = ('implied_probability', 'external_id', 'url')
     writeonly_fields = ('us_away_odds', 'us_home_odds')
 
     list_display = (

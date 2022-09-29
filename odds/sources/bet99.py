@@ -1,19 +1,28 @@
 from django.utils import timezone
 from datetime import datetime
-from odds.models import Odds
 
+from odds.models import Odds
 from odds.sources import Source
 from games.models import League, City, Team, Match
 
 
 class BET99(Source):
+    base_betting_url = 'https://bet99.com/en/sport-betting#'
     base_url = 'https://sb2frontend-altenar2.biahosted.com/api/Sportsbook/GetEvents'
     obj = None
-    leagues = (
-        'nfl',
-        'nhl',
-        'nba',
-    )
+    leagues = {
+        'nfl': '3281',
+        'nhl': '3232',
+        'nba': '2980',
+    }
+    sports = {
+        'football': '75',
+        'hockey': '70',
+        'basketball': '67',
+    }
+    event_types = {
+        'default': '0'
+    }
 
     def _fetch_events(self, data):
         return data['Result']['Items'][0]['Events']
@@ -24,7 +33,7 @@ class BET99(Source):
         params = {
             'timezoneOffset': 240,
             'langId': 8,
-            'skinName': 'bet99',
+            'skiyynName': 'bet99',
             'configId': 17,
             'culture': 'en-GB',
             'countryCode': 'CA',
@@ -45,17 +54,16 @@ class BET99(Source):
             ).strftime('%Y-%m-%dT%H:%M:%SZ'),
         }
 
-        if league == 'nfl':
-            params['champids'] = 3281
-        elif league == 'nhl':
-            params['champids'] = 3232
-        elif league == 'nba':
-            params['champids'] = 2980
-        elif league == 'mlb':
-            params['champids'] = 668
+        params['champids'] = self.leagues[league]
 
         return self.base_url + self._params_to_url(params)
-        
+       
+    def get_details_path(self, external_id, league, sport):
+        sport_id = self.sports[sport]
+        event_type = self.event_types['default']
+        league_id = self.leagues[league]
+
+        return f'{self.base_betting_url}/event/{sport_id}/{event_type}/{league_id}/all/{external_id}'
 
     def import_data(self, obj):
         self.obj = obj
@@ -69,8 +77,9 @@ class BET99(Source):
             events = self._fetch_events(data.json())
 
             for event in events:
+                league_name = event['ChampName'].strip()
                 league, _ = League.objects.get_or_create(
-                    name=event['ChampName']
+                    name=league_name
                 )
 
                 teams = []
@@ -103,9 +112,11 @@ class BET99(Source):
                     odds, _ = Odds.objects.get_or_create(
                         bookie_id=self.obj.id,
                         match_id=match.id,
+                        external_id=event['Id'],
                     )
                     money_line = event['Items'][0]['Items']
                     odds.away_odds = money_line[0]['Price']
                     odds.home_odds = money_line[1]['Price']
+                    odds.refreshed_at = timezone.now()
                     odds.save()
 

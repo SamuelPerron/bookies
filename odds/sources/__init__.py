@@ -1,8 +1,13 @@
-from bs4 import BeautifulSoup
 import requests
 
 
 class Source:
+    def get_details_path(self):
+        raise NotImplementedError
+
+    def import_data(self):
+        raise NotImplementedError
+
     def _fetch_url(self, url):
         headers = {}
 
@@ -12,10 +17,6 @@ class Source:
         )
 
         return response
-
-    def _fetch_document(self, url):
-        response = self._fetch_url(url)
-        return BeautifulSoup(response.text, 'html.parser')
 
     def _params_to_url(self, params):
         url = '?'

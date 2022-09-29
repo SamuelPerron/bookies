@@ -4,6 +4,7 @@ from django.utils import timezone
 
 class League(models.Model):
     name = models.CharField(blank=False, max_length=255)
+    sport = models.CharField(blank=False, max_length=255, null=True)
 
     def __str__(self):
         return self.name
