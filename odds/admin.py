@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from odds.models import Bookie, Odds
+from odds.models import ArbitragePossibility, Bookie, Odds
 
 
 @admin.register(Bookie)
@@ -35,4 +35,18 @@ class OddsAdmin(admin.ModelAdmin):
         'match',
         'away_odds',
         'home_odds'
+    )
+
+
+@admin.register(ArbitragePossibility)
+class ArbitragePossibilityAdmin(admin.ModelAdmin):
+    readonly_fields = (
+        'away_odds',
+        'home_odds',
+        'away_stake',
+        'home_stake',
+        'margin',
+        'total_stake',
+        'total_payout',
+        'profit',
     )

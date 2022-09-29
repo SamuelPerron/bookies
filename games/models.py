@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
+from odds.models import ArbitragePossibility
+
 
 class League(models.Model):
     name = models.CharField(blank=False, max_length=255)
@@ -52,13 +54,25 @@ class Match(models.Model):
                         calculation = 1 / odds['away_odds'] + 1 / other_odds['home_odds']
                     else:
                         calculation = 1 / odds['home_odds'] + 1 / other_odds['away_odds']
-
+ 
                     multi_array.append(
                         (odds['id'], other_odds['id'], j, calculation)
                     )
 
         for odds in multi_array:
             if odds[3] < 1:
+                if odds[2] == 0:
+                    away = odds[0]
+                    home = odds[1]
+                else:
+                    away = odds[1]
+                    home = odds[0]
+
+                possibility, _ = ArbitragePossibility.objects.get_or_create(
+                    away_odds_id=away,
+                    home_odds_id=home,
+                    margin=odds[3]
+                )
                 profitable_odds.append(odds)
 
         return profitable_odds

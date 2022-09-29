@@ -90,3 +90,47 @@ class Odds(models.Model):
 
     class Meta:
         verbose_name_plural = 'Odds'
+
+
+class ArbitragePossibility(models.Model):
+    away_odds = models.ForeignKey('odds.Odds', on_delete=models.CASCADE, related_name='arbitrage_away_set')
+    home_odds = models.ForeignKey('odds.Odds', on_delete=models.CASCADE, related_name='arbitrage_home_set')
+
+    away_stake = models.FloatField(blank=False)
+    home_stake = models.FloatField(blank=False)
+
+    margin = models.FloatField(blank=False)
+
+    @property
+    def total_stake(self):
+        if self.away_stake and self.home_stake:
+            return self.away_stake + self.home_stake
+
+    @property
+    def total_payout(self):
+        if self.away_stake and self.away_odds:
+            return self.away_stake * self.away_odds.away_odds
+
+    @property
+    def profit(self):
+        if self.away_stake and self.home_stake:
+            return self.total_payout - self.total_stake
+
+    def save(self, *args, **kwargs):
+        away = self.away_odds.away_odds
+        home = self.home_odds.home_odds
+
+        if away > home:
+            self.home_stake = 100
+            self.away_stake = (home * 100) / away
+        else:
+            self.away_stake = 100
+            self.home_stake = (away * 100) / home
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.margin} | {self.away_odds.match} | Profit {round(self.profit, 2)} $'
+
+    class Meta:
+        verbose_name_plural = 'Arbitrage Possibilities'
